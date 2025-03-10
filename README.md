@@ -86,3 +86,4 @@ int main() {
 To run this code, the FFTW library must be installed and properly linked during compilation, as it is not part of the standard C++ library. The code is designed to work with C++11 or later due to the use of `<random>` and other modern features.
 
 
+![C++](https://img.shields.io/badge/c++-%2300599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white)
