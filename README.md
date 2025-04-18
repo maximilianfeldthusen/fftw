@@ -1,89 +1,125 @@
 
-## Documentation
 
-### fftw
+### **Overview**
 
-This C++ code snippet generates a sample signal composed of a sine wave with added noise, performs a Fast Fourier Transform (FFT) on that signal, and then displays the magnitude spectrum of the FFT result. Let's break down the code step by step.
+This program generates a synthetic signal composed of a sine wave with added noise, computes its Fast Fourier Transform (FFT) to analyze its frequency components, detects peaks in the spectrum, and displays the results.
 
-### Header Files
-```cpp
-#include <iostream>
-#include <vector>
-#include <complex>
-#include <fftw3.h>
-#include <cmath>
-#include <cstdlib>
-#include <ctime>
-#include <random>
-```
-- `#include <iostream>`: This header is used for input and output streams (e.g., `std::cout`).
-- `#include <vector>`: This includes the vector library which allows the use of dynamic arrays.
-- `#include <complex>`: This provides the complex number functionalities (though it's not explicitly used in the code).
-- `#include <fftw3.h>`: This includes the FFTW library for performing Fast Fourier Transform.
-- `#include <cmath>`: This provides mathematical functions like `sin()`, `sqrt()`, etc.
-- `#include <cstdlib>`: This is used for functions like `rand()` and `srand()`.
-- `#include <ctime>`: This provides functionalities for time, used here for seeding the random number generator.
-- `#include <random>`: This includes the random number generation facilities.
+---
 
-### Constants
-```cpp
-const double PI = 3.14159265358979323846;
-```
-Defines a constant value of π for use in sine wave calculations.
+### **Included Libraries**
 
-### Signal Generation Function
-```cpp
-std::vector<double> generateSignal(int N, double freq, double sampleRate) {
-    ...
-}
-```
-This function generates a signal that is a combination of a sine wave and random noise:
-- `N`: Number of samples.
-- `freq`: Frequency of the sine wave.
-- `sampleRate`: Sampling rate.
+- `<iostream>`: for input/output operations.
+- `<vector>`: to handle dynamic arrays.
+- `<complex>`: for complex number operations (though not directly used here).
+- `<fftw3.h>`: FFTW library for performing FFTs.
+- `<cmath>`: mathematical functions like `sin()` and `sqrt()`.
+- `<cstdlib>`, `<ctime>`, `<random>`: for random number generation.
+- `<algorithm>`: for functions like `max_element()`.
 
-The function uses a random number generator to create noise, then it populates a vector with the sine wave values and adds the noise.
+---
 
-### FFT Function
-```cpp
-std::vector<double> performFFT(const std::vector<double>& signal) {
-    ...
-}
-```
-This function performs the Fast Fourier Transform on the provided signal:
-1. Allocates memory for the input and output arrays using `fftw_malloc`.
-2. Copies the signal data into the FFTW input format.
-3. Creates and executes a FFTW plan for performing the FFT.
-4. Calculates the magnitude spectrum from the FFT output.
-5. Frees the allocated memory.
+### **Constants and Data Structures**
 
-### Display Function
-```cpp
-void displayData(const std::vector<double>& data) {
-    ...
-}
-```
-This function outputs the data in the console, showing the index and corresponding magnitude value.
+- `PI`: a constant for π.
+- `struct Peak`: to store information about detected peaks (their index and magnitude).
 
-### Main Function
-```cpp
-int main() {
-    ...
-}
-```
-- Seeds the random number generator.
-- Defines the sample rate, number of samples, and sine wave frequency.
-- Calls `generateSignal` to create the signal.
-- Calls `performFFT` to compute the FFT and obtain the magnitude spectrum.
-- Calls `displayData` to print the magnitude spectrum.
+---
 
-### Summary
-- This code is a basic implementation of signal generation and Fourier analysis using FFT.
-- It creates a noisy sine wave and analyzes its frequency content.
-- The FFTW library is used for efficient computation of the FFT, and the results are displayed in the console.
+### **Functions**
 
-### Note
-To run this code, the FFTW library must be installed and properly linked during compilation, as it is not part of the standard C++ library. The code is designed to work with C++11 or later due to the use of `<random>` and other modern features.
+#### 1. `generateSignal()`
+- **Purpose:** Creates a synthetic signal of length `N` samples containing a sine wave of a specified frequency (`freq`) plus random noise.
+- **Parameters:**
+  - `N`: number of samples.
+  - `freq`: sine wave frequency.
+  - `sampleRate`: sampling rate in Hz.
+  - `generator`: random engine for noise.
+  - `noiseAmplitude`: amplitude of added noise (default 0.5).
+- **Process:**
+  - For each sample `n`, compute `sin(2π * freq * n / sampleRate)`.
+  - Add random noise uniformly distributed between -0.5 and 0.5, scaled by `noiseAmplitude`.
+- **Returns:** a vector containing the noisy sine wave.
 
+---
 
-![C++](https://img.shields.io/badge/c++-%2300599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white)
+#### 2. `performFFT()`
+- **Purpose:** Computes the FFT of the input signal and returns the magnitude spectrum.
+- **Process:**
+  - Allocates memory for FFT input (`in`) and output (`out`) arrays using FFTW.
+  - Copies the real input signal into the complex input array (`in`), setting imaginary parts to zero.
+  - Creates an FFT plan and executes it.
+  - Calculates the magnitude of the first half of the FFT output (since the FFT of real signals is symmetric).
+  - Frees FFTW resources.
+- **Returns:** a vector of magnitudes representing the spectrum.
+
+---
+
+#### 3. `detectPeaks()`
+- **Purpose:** Finds local maxima in the spectrum that are above a specified threshold.
+- **Parameters:**
+  - `spectrum`: magnitude spectrum.
+  - `threshold`: minimum magnitude to consider a peak.
+  - `minDistance`: minimum separation between peaks (not fully implemented here).
+- **Process:**
+  - Iterates through the spectrum (excluding first and last points).
+  - Checks if a point is greater than its neighbors and above the threshold.
+  - Collects such points as peaks.
+- **Returns:** a vector of `Peak` objects.
+
+---
+
+#### 4. `displaySpectrum()`
+- **Purpose:** Prints a summarized view of the spectrum, limiting the number of printed points for readability.
+- **Parameters:**
+  - `spectrum`: the magnitude spectrum.
+  - `maxPoints`: maximum number of points to display (default 50).
+
+---
+
+#### 5. `displayPeaks()`
+- **Purpose:** Prints information about the detected peaks.
+
+---
+
+### **Main Function Workflow**
+
+1. **Initialize Random Generator:**
+   - Seeds with current time for noise randomness.
+
+2. **Parameters:**
+   - `sampleRate = 1024 Hz`
+   - `N = 1024 samples`
+   - `freq = 50 Hz` (signal frequency)
+
+3. **Generate Signal:**
+   - Calls `generateSignal()` to create a noisy sine wave.
+
+4. **Compute FFT:**
+   - Calls `performFFT()` to get the spectrum.
+
+5. **Display Spectrum:**
+   - Calls `displaySpectrum()` to print a summarized spectrum.
+
+6. **Peak Detection:**
+   - Finds the maximum magnitude in the spectrum.
+   - Sets a threshold at 30% of this maximum.
+   - Calls `detectPeaks()` to find peaks above this threshold.
+
+7. **Display Detected Peaks:**
+   - Calls `displayPeaks()`.
+
+---
+
+### **Summary**
+
+This code performs a basic spectral analysis:
+- Generates a noisy sine wave signal.
+- Uses FFT to analyze its frequency content.
+- Detects prominent peaks in the spectrum, which correspond to significant frequency components.
+- Outputs the spectrum and the peaks for inspection.
+
+This approach is common in signal processing applications for identifying dominant frequencies in noisy signals.
+
+---
+
+**Note:** To run this code, you need to have FFTW installed on your system and compile with the appropriate flags, e.g., `-lfftw3`.
